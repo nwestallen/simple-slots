@@ -1,12 +1,12 @@
 import { useState } from 'react'
-
+import { Reel } from './components/Reel'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
-        <div className="flex flex-col items-center mt-16">
+    <div className='bg-slate-500 h-screen'>
+        <div className="flex flex-col items-center pt-16">
           <h1 className="text-3xl font-bold text-green-500">
             Get started
             </h1>
@@ -16,8 +16,10 @@ function App() {
         >
           Count is {count}
         </button>
+        <br/>
+        <Reel blocks={["🍋","$", "A"]}/>
         </div>
-    </>
+    </div>
   )
 }
 
