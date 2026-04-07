@@ -11,3 +11,8 @@ export const arrWindow = (array: (string|number)[], winLength: number, idx: numb
     }
     return res;
 };
+
+export const randWindow = (array: (string|number)[], winLength: number) => {
+    const idx = Math.floor(Math.random() * array.length);
+    return arrWindow(array, winLength, idx);
+};
