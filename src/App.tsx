@@ -5,7 +5,7 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <div className='bg-slate-500 h-screen'>
+    <div className='bg-slate-500 min-h-screen h-full'>
         <div className="flex flex-col items-center pt-16">
           <h1 className="text-3xl font-bold text-green-500">
             Get started
@@ -17,7 +17,9 @@ function App() {
           Count is {count}
         </button>
         <br/>
-        <Reel blocks={["🍋","$", "A"]}/>
+        <div className="w-128 border border-red-500">
+        <Reel blocks={["🍋","$", "A", "🍊", "🎰"]}/>
+        </div>
         </div>
     </div>
   )
