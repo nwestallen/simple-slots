@@ -1,4 +1,4 @@
-export const arrWindow = (array: number[], winLength: number, idx: number): number[] => {
+export const arrWindow = (array: (string|number)[], winLength: number, idx: number): number[] => {
 
     const l = array.length;
     const half = Math.floor(winLength / 2);

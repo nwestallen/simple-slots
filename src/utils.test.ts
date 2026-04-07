@@ -1,6 +1,8 @@
-import {expect, test } from 'vitest'
+import {describe, expect, test } from 'vitest'
 import { arrWindow } from './utils'
 
+
+describe('arrWindow function', () => {
 const eightArr = [0, 1, 2, 3, 4, 5, 6, 7]
 
 test('array window of size 3 centered', () => {
@@ -10,4 +12,5 @@ test('array window of size 3 centered', () => {
 
 test('array window of size 3 wrap', () => {
     expect(arrWindow(eightArr, 3, 7)).toStrictEqual([6,7,0])
+})
 })
