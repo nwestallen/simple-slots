@@ -1,13 +1,13 @@
-const absMod = (n:number, d:number):number => ((n % d) + d) % d; 
+export const arrWindow = (array: number[], winLength: number, idx: number): number[] => {
 
-export const arrWindow = (array:number[], length:number, idx:number):number[] => {
-    if (length == 1) {
-        return [array[idx]];
-    } else {
-        const res = [];
-        for (let i = 0; i < length; i++) {
-            res.push(array[absMod(i+(idx-1),array.length)])
-        }
-        return res;
+    const l = array.length;
+    const half = Math.floor(winLength / 2);
+    const res = new Array(winLength);
+    
+    for (let i = 0; i < winLength; i++) {
+        let pos = (idx - half + i) % l;
+        if (pos < 0) pos += l;
+        res[i] = array[pos];
     }
+    return res;
 };
