@@ -22,9 +22,9 @@ export const Reel = ({ symbols, windowSize, currentIdx, destinationIdx, extraCyc
     const stepsRemaining = useRef(0);
     const totalSteps = useRef(0);
     const isAnimating = useRef(false);
-    const durationMs = useRef(50);
 
     // Idle: n+1 blocks with extra at top, shifted up by -10vh to hide it
+    const [durationMs, setDurationMs] = useState(50);
     const [offset, setOffset] = useState("-10vh");
     const [transitionOn, setTransitionOn] = useState(false);
     const [blocks, setBlocks] = useState<(string | number)[]>(
@@ -33,7 +33,7 @@ export const Reel = ({ symbols, windowSize, currentIdx, destinationIdx, extraCyc
 
     const doStep = useCallback(() => {
         const progress = 1 - (stepsRemaining.current / totalSteps.current);
-        durationMs.current = Math.round((50 + 200 * (progress ** 2)) / speed);
+        setDurationMs(Math.round((50 + 200 * (progress ** 2)) / speed));
 
         // Strip: [incoming_top, ...n visible blocks] — extra at top
         setBlocks(reelSlice(symbols, windowSize + 1, topIdx.current - 1));
@@ -85,6 +85,7 @@ export const Reel = ({ symbols, windowSize, currentIdx, destinationIdx, extraCyc
         totalSteps.current = total;
 
         requestAnimationFrame(() => doStep());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [destinationIdx]);
 
     return (
@@ -92,7 +93,7 @@ export const Reel = ({ symbols, windowSize, currentIdx, destinationIdx, extraCyc
             className={`flex flex-col w-full ${transitionOn ? 'transition-transform' : ''}`}
             style={{
                 transform: `translateY(${offset})`,
-                transitionDuration: `${durationMs.current}ms`,
+                transitionDuration: `${durationMs}ms`,
                 transitionTimingFunction: 'linear',
             }}
             onTransitionEnd={handleTransitionEnd}
