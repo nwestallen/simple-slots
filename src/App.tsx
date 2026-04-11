@@ -1,10 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { SlotScreen } from "./components/SlotScreen";
+import { ReelProvider } from "./ReelContext";
 import { randIdx } from "./utils";
-
-const WINDOW_SIZE = 4;
-const EXTRA_CYCLES = [2, 3, 4];
-const SPIN_SPEED = 1; // multiplier: >1 faster, <1 slower
+import { ReelSettings } from "./components/ReelSettings";
 
 function App() {
   const reel1 = ["🍋", "🍊", "🎰", "🍒", "🍇", "🔔", "🍀"];
@@ -39,33 +37,34 @@ function App() {
     }
   }, [reelIndices.length]);
 
+
   return (
-    <div className='bg-slate-500 min-h-screen h-full'>
-      <div className="flex flex-col items-center pt-16">
-        <h1 className="text-6xl font-bold text-white">
-          Slot Simulation
-        </h1>
-        <div className='m-16'>
-          <SlotScreen
-            symbols={reel1}
-            windowSize={WINDOW_SIZE}
-            currentIndices={reelIndices}
-            destinations={destinations}
-            extraCycles={EXTRA_CYCLES}
-            speed={SPIN_SPEED}
-            onReelStop={handleReelStop}
-          />
+    <ReelProvider>
+      <div className='bg-slate-500 min-h-screen h-full'>
+        <div className="flex flex-col items-center pt-16">
+          <h1 className="text-6xl font-bold text-white">
+            Slot Simulation
+          </h1>
+          <div className='m-16'>
+            <SlotScreen
+              symbols={reel1}
+              currentIndices={reelIndices}
+              destinations={destinations}
+              onReelStop={handleReelStop}
+            />
+          </div>
+          <button
+            className={`bg-red-500 text-white p-2 rounded-xl font-bold text-2xl
+              ${spinning ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={spinReels}
+            disabled={spinning}
+          >
+            SPIN
+          </button>
+          <ReelSettings />
         </div>
-        <button
-          className={`bg-red-500 text-white p-2 rounded-xl font-bold text-2xl
-            ${spinning ? 'opacity-50 cursor-not-allowed' : ''}`}
-          onClick={spinReels}
-          disabled={spinning}
-        >
-          SPIN
-        </button>
       </div>
-    </div>
+    </ReelProvider>
   )
 }
 

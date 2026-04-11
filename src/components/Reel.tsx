@@ -1,103 +1,86 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import { Block } from "./Block"
 import { reelSlice } from "../utils"
+import { useReelContext } from "../ReelContext"
 
 interface ReelProps {
     symbols: (string | number)[];
-    windowSize: number;
+    reelIndex: number;
     currentIdx: number;
     destinationIdx: number | null;
-    extraCycles: number;
-    speed: number;
     onStop: (finalIdx: number) => void;
 }
 
-const idleStrip = (symbols: (string | number)[], windowSize: number, centerIdx: number) => {
-    const topIdx = centerIdx - Math.floor(windowSize / 2);
-    return reelSlice(symbols, windowSize + 1, topIdx - 1);
-};
+export const Reel = ({ symbols, reelIndex, currentIdx, destinationIdx, onStop }: ReelProps) => {
+    const { rowCount, extraCycles: extraCyclesArr, speed } = useReelContext();
+    const extraCycles = extraCyclesArr[reelIndex];
+    const elRef = useRef<HTMLDivElement>(null);
+    const [spinBlocks, setSpinBlocks] = useState<(string | number)[] | null>(null);
 
-export const Reel = ({ symbols, windowSize, currentIdx, destinationIdx, extraCycles, speed, onStop }: ReelProps) => {
-    const topIdx = useRef(currentIdx - Math.floor(windowSize / 2));
-    const stepsRemaining = useRef(0);
-    const totalSteps = useRef(0);
-    const isAnimating = useRef(false);
+    const blocks = spinBlocks ?? reelSlice(symbols, rowCount + 1, currentIdx - Math.floor(rowCount / 2) - 1);
 
-    // Idle: n+1 blocks with extra at top, shifted up by -10vh to hide it
-    const [durationMs, setDurationMs] = useState(50);
-    const [offset, setOffset] = useState("-10vh");
-    const [transitionOn, setTransitionOn] = useState(false);
-    const [blocks, setBlocks] = useState<(string | number)[]>(
-        idleStrip(symbols, windowSize, currentIdx)
-    );
+    useLayoutEffect(() => {
+        if (destinationIdx === null || !elRef.current) return;
 
-    const doStep = useCallback(() => {
-        const progress = 1 - (stepsRemaining.current / totalSteps.current);
-        setDurationMs(Math.round((50 + 200 * (progress ** 2)) / speed));
-
-        // Strip: [incoming_top, ...n visible blocks] — extra at top
-        setBlocks(reelSlice(symbols, windowSize + 1, topIdx.current - 1));
-        setTransitionOn(true);
-
-        requestAnimationFrame(() => {
-            // Slide down to 0: incoming block enters from top, bottom exits
-            setOffset("0vh");
-        });
-    }, [symbols, windowSize, speed]);
-
-    const handleTransitionEnd = useCallback(() => {
-        if (!isAnimating.current) return;
-
-        // Advance: topIdx decrements (reel scrolls downward)
         const reelLen = symbols.length;
-        topIdx.current = (topIdx.current - 1 + reelLen) % reelLen;
-        stepsRemaining.current -= 1;
+        const initialTopIdx = currentIdx - Math.floor(rowCount / 2);
+        const destTop = destinationIdx - Math.floor(rowCount / 2);
+        const baseSteps = ((initialTopIdx - destTop) % reelLen + reelLen) % reelLen;
+        const totalSteps = baseSteps + extraCycles * reelLen;
 
-        // Instant reset: disable transition, snap back to -10vh
-        setTransitionOn(false);
-        setOffset("-10vh");
-        setBlocks(reelSlice(symbols, windowSize + 1, topIdx.current - 1));
+        const strip = reelSlice(symbols, totalSteps + 1 + rowCount, initialTopIdx - 1 - totalSteps);
+        setSpinBlocks(strip);
 
-        if (stepsRemaining.current > 0) {
-            requestAnimationFrame(() => doStep());
-        } else {
-            isAnimating.current = false;
-            const finalCenter = (topIdx.current + Math.floor(windowSize / 2) + symbols.length) % symbols.length;
-            // Stay at n+1 blocks for seamless look
-            setBlocks(idleStrip(symbols, windowSize, finalCenter));
-            onStop(finalCenter);
+        // Piecewise-linear deceleration + overshoot rebound.
+        // Each linear step moves the strip 10vh in (30 + 120·p²)/speed ms; the
+        // discrete velocity drops give the mechanical "brake" feel. After the
+        // final step, the reel overshoots 5vh past the destination then snaps
+        // back — momentum that a physical slot reel would have.
+        const stepMs = (i: number) => (30 + 40 * (i / totalSteps) ** 8) / speed;
+        const overshootMs = 90 / speed;
+        const reboundMs = 140 / speed;
+        const overshootVh = 5;
+
+        let linearMs = 0;
+        for (let i = 0; i < totalSteps; i++) linearMs += stepMs(i);
+        const totalDuration = linearMs + overshootMs + reboundMs;
+
+        const keyframes: Keyframe[] = [];
+        let elapsed = 0;
+        for (let i = 0; i <= totalSteps; i++) {
+            keyframes.push({
+                offset: elapsed / totalDuration,
+                transform: `translateY(${-(totalSteps + 1 - i) * 10}vh)`,
+                easing: 'linear',
+            });
+            if (i < totalSteps) elapsed += stepMs(i);
         }
-    }, [symbols, windowSize, doStep, onStop]);
+        elapsed += overshootMs;
+        keyframes.push({
+            offset: elapsed / totalDuration,
+            transform: `translateY(${-10 + overshootVh}vh)`,
+            easing: 'linear',
+        });
+        keyframes.push({
+            offset: 1,
+            transform: 'translateY(-10vh)',
+            easing: 'ease-out',
+        });
 
-    useEffect(() => {
-        if (destinationIdx === null || isAnimating.current) return;
+        const anim = elRef.current.animate(keyframes, { duration: totalDuration, fill: 'both' });
 
-        isAnimating.current = true;
-        topIdx.current = currentIdx - Math.floor(windowSize / 2);
+        anim.finished.then(() => {
+            anim.cancel();
+            setSpinBlocks(null);
+            onStop(destinationIdx);
+        }).catch(() => {});
 
-        const destTop = destinationIdx - Math.floor(windowSize / 2);
-        const reelLen = symbols.length;
-        // Decrementing direction: how many steps to go from current to dest
-        const raw = ((topIdx.current - destTop) % reelLen + reelLen) % reelLen;
-        const total = raw + extraCycles * reelLen;
-
-        stepsRemaining.current = total;
-        totalSteps.current = total;
-
-        requestAnimationFrame(() => doStep());
+        return () => anim.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [destinationIdx]);
 
     return (
-        <div
-            className={`flex flex-col w-full ${transitionOn ? 'transition-transform' : ''}`}
-            style={{
-                transform: `translateY(${offset})`,
-                transitionDuration: `${durationMs}ms`,
-                transitionTimingFunction: 'linear',
-            }}
-            onTransitionEnd={handleTransitionEnd}
-        >
+        <div ref={elRef} className="flex flex-col w-full" style={{ transform: 'translateY(-10vh)' }}>
             {blocks.map((symbol, i) => (
                 <Block key={i} symbol={symbol} />
             ))}
