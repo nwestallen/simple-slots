@@ -8,7 +8,7 @@ export const ReelSettings = () => {
     <input 
     id='rows'
     className='bg-white text-center m-8 w-1/2 border border-red-500'
-    type='number' value={rowCount} onChange={e => setRowCount(e.target.valueAsNumber)} />
+    type='number' value={rowCount} onChange={e => setRowCount(Number.isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber)} />
     </div>
   );
 }
