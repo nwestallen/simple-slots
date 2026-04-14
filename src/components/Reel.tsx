@@ -13,7 +13,7 @@ interface ReelProps {
 
 export const Reel = ({ symbols, reelIndex, currentIdx, destinationIdx, onStop }: ReelProps) => {
     const { rowCount, extraCycles: extraCyclesArr, speed } = useReelContext();
-    const extraCycles = extraCyclesArr[reelIndex];
+    const extraCycles = extraCyclesArr[reelIndex] ?? extraCyclesArr[extraCyclesArr.length - 1];
     const elRef = useRef<HTMLDivElement>(null);
     const [spinBlocks, setSpinBlocks] = useState<(string | number)[] | null>(null);
 

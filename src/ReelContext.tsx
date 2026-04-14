@@ -20,7 +20,7 @@ interface ReelProviderProps {
 
 export const ReelProvider = ({
     children,
-    initialRowCount = 4,
+    initialRowCount = 3,
     initialExtraCycles = [2, 3, 4],
     initialSpeed = 1.1,
 }: ReelProviderProps) => {
