@@ -5,8 +5,8 @@ export interface BlockProps {
 
 export const Block = ({symbol}: BlockProps) => {
     return (
-        <div className={`bg-stone-50 text-[4em] p-1 aspect-square flex items-center
-         justify-center border border-solid border-gray-300 h-[10vh]`}>
+        <div className={`bg-stone-50 text-[4em] p-2 aspect-square flex items-center
+         justify-center border-x border-solid border-gray-600 h-[10vh]`}>
             {symbol}
             </div>
     )

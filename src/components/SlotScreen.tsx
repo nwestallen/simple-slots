@@ -12,7 +12,7 @@ export const SlotScreen = ({ reels, currentIndices, destinations, onReelStop }: 
     const { rowCount } = useReelContext();
     return (
         <div
-            className="w-full justify-center border border-red-500 flex flex-row overflow-clip"
+            className="w-full justify-center border-8 border-grey-800 flex flex-row overflow-clip"
             style={{ height: `${rowCount * 10}vh` }}
         >
             {reels.map((symbols, i) => (

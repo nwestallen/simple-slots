@@ -2,7 +2,7 @@ import {describe, expect, test } from 'vitest'
 import { reelSlice } from './utils'
 
 
-describe('arrWindow function', () => {
+describe('reelSlice function', () => {
 const eightArr = [0, 1, 2, 3, 4, 5, 6, 7]
 
 test('array window of size 3 centered', () => {
