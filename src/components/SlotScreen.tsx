@@ -2,14 +2,13 @@ import { Reel } from "./Reel"
 import { useReelContext } from "../ReelContext"
 
 interface SlotScreenProps {
-    reels: (string | number)[][];
     currentIndices: number[];
     destinations: number[] | null;
     onReelStop: (reelIndex: number, finalIdx: number) => void;
 }
 
-export const SlotScreen = ({ reels, currentIndices, destinations, onReelStop }: SlotScreenProps) => {
-    const { rowCount } = useReelContext();
+export const SlotScreen = ({ currentIndices, destinations, onReelStop }: SlotScreenProps) => {
+    const { reels, rowCount } = useReelContext();
     return (
         <div
             className="w-full justify-center border-8 border-grey-800 flex flex-row overflow-clip"
