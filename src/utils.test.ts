@@ -1,5 +1,5 @@
 import {describe, expect, test } from 'vitest'
-import { reelSlice } from './utils'
+import { checkWin, reelSlice } from './utils'
 
 
 describe('reelSlice function', () => {
@@ -13,4 +13,20 @@ test('array window of size 3 centered', () => {
 test('array window of size 3 wrap', () => {
     expect(reelSlice(eightArr, 3, 7)).toStrictEqual([7, 0, 1])
 })
+})
+
+describe('checkWin function', () => {
+    const reelsArr = [["A", "A", "B"], ["B", "A", "C"], ["C", "A", "A"]];
+
+    test('center line win', () => {
+        expect(checkWin([1, 1, 1], reelsArr)).toStrictEqual(true)
+    })
+
+    test('top line loses', () => {
+        expect(checkWin([0, 0, 0], reelsArr)).toStrictEqual(false)
+    })
+
+    test('diagonal win', () => {
+        expect(checkWin([0, 1, 2], reelsArr)).toStrictEqual(true)
+    })
 })
