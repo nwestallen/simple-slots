@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 import { SlotScreen } from "./SlotScreen";
+import { Scoreboard } from "./Scoreboard";
+import { SlotButton } from "./SlotButton";
 import { useReelContext } from "../ReelContext";
 import { randIdx, reelSlice } from "../utils";
 
@@ -56,20 +58,10 @@ export const SlotMachine = () => {
                     onReelStop={handleReelStop}
                 />
             </div>
-            <div id='slot scoreboard' className="flex flex-row my-4 justify-between w-full">
-                <div className="bg-black text-white font-bold py-1 px-2 mx-1 rounded-sm w-1/3">CREDITS: 1200</div>
-                <div className="bg-black text-white font-bold py-1 px-2 mx-1 rounded-sm w-1/4">WIN: </div>
-                <div className="bg-black text-white font-bold py-1 px-2 mx-1 rounded-sm w-1/5">BET: 3</div>
-            </div>
-            <button
-                className={`bg-white py-1 px-2 rounded-md font-bold text-xl
-                border-black border-b-5 border-r-5 border-t-2 border-l-2 shadow-md
-              ${spinning ? "opacity-50 cursor-not-allowed" : ""}`}
-                onClick={spinReels}
-                disabled={spinning}
-            >
+            <Scoreboard credits={1200} win="" bet={3} />
+            <SlotButton onClick={spinReels} disabled={spinning}>
                 SPIN
-            </button>
+            </SlotButton>
         </div>
     );
 };
