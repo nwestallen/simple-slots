@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 interface ReelContextValue {
     reels: (string | number)[][];
@@ -39,10 +39,7 @@ export const ReelProvider = ({
     const [extraCycles, setExtraCycles] = useState(initialExtraCycles);
     const [speed, setSpeed] = useState(initialSpeed);
 
-    const value = useMemo(
-        () => ({ reels, rowCount, extraCycles, speed, setReels, setRowCount, setExtraCycles, setSpeed }),
-        [reels, rowCount, extraCycles, speed]
-    );
+    const value = { reels, rowCount, extraCycles, speed, setReels, setRowCount, setExtraCycles, setSpeed };
 
     return <ReelContext.Provider value={value}>{children}</ReelContext.Provider>;
 };
