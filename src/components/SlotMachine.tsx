@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SlotScreen } from "./SlotScreen";
 import { Scoreboard } from "./Scoreboard";
 import { SlotButton } from "./SlotButton";
 import { useReelContext } from "../ReelContext";
-import { randIdx, reelSlice } from "../utils";
+import { checkWin, randIdx, reelSlice } from "../utils";
 
 export const SlotMachine = () => {
     const { reels, rowCount } = useReelContext();
@@ -21,6 +21,15 @@ export const SlotMachine = () => {
     const visibleSymbols = reels.map((symbols, i) =>
         reelSlice(symbols, rowCount, reelIndices[i] - Math.floor(rowCount / 2))
     );
+
+    useEffect(() => {
+        if (!spinning && completedCount >= reels.length) {
+            console.log(visibleSymbols);
+            if (checkWin([1,1,1], visibleSymbols)) {
+                alert(`WINNER:  ${visibleSymbols[1]}`)
+            } 
+        }
+    }, [spinning]);
 
     const spinReels = () => {
         if (spinning) return;
