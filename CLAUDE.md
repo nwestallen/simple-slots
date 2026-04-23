@@ -6,7 +6,7 @@ A slot machine simulation built with React, TypeScript, and Tailwind CSS v4.
 
 - **React 19** + TypeScript (ES2023 target, strict mode)
 - **Tailwind CSS v4** — no config file, pure utility classes via `@tailwindcss/vite` plugin
-- **Vite 8** with React compiler optimization
+- **Vite 8** with **React Compiler** — auto-memoizes components, hooks, and values. Do not manually add `useMemo`, `useCallback`, or `React.memo` unless profiling shows the compiler missed a case
 - **Vitest** for testing
 
 ## Project Structure
@@ -24,7 +24,10 @@ src/
     ├── Block.tsx         # Single symbol cell (10vh tall, aspect-square)
     ├── Reel.tsx          # Animated reel strip (Web Animations API)
     ├── ReelSettings.tsx  # User controls bound to ReelContext (currently: row count)
-    ├── SlotMachine.tsx   # Game state: spin orchestration, indices, visibleSymbols, scoreboard, spin button
+    ├── Scoreboard.tsx    # Credits, win, bet display bar
+    ├── Scorecard.tsx     # Individual score label/value pair
+    ├── SlotButton.tsx    # Styled spin button
+    ├── SlotMachine.tsx   # Game state: spin orchestration, indices, win/credits bookkeeping, buttons
     └── SlotScreen.tsx    # Container for reels (overflow-clip viewport)
 ```
 
@@ -35,16 +38,16 @@ src/
 ```
 ReelProvider (reels[], rowCount, extraCycles, speed state)
   └── App (layout shell only)
-       ├── SlotMachine (reelIndices[], destinations[], spinning, visibleSymbols — game state + UI)
+       ├── SlotMachine (reelIndices[], destinations[], spinning, credits, bet, win — game state + UI)
        │    ├── SlotScreen (height = rowCount * 10vh, maps reels[] from context to Reels)
        │    │    └── Reel × N (each gets its own symbols[], runs WAAPI animation on spin)
        │    │         └── Block (stateless: renders one emoji symbol)
        │    ├── Scoreboard (credits, win, bet display)
-       │    └── Spin button
+       │    └── Bet / Max Bet / Spin buttons
        └── ReelSettings (live tuning of context values)
 ```
 
-`App` is a thin layout shell with no state. `ReelContext` owns reel configuration (symbol arrays, animation parameters). `SlotMachine` owns all per-spin game state and derives `visibleSymbols` via `useMemo` from `reelIndices` + `reels` + `rowCount` for win checking.
+`App` is a thin layout shell with no state. `ReelContext` owns reel configuration (symbol arrays, animation parameters). `SlotMachine` owns all per-spin game state: reel indices, destinations, spinning flag, credits, bet, and win payout.
 
 ### Key Concepts
 
@@ -54,7 +57,12 @@ ReelProvider (reels[], rowCount, extraCycles, speed state)
 
 **Index-based state**: `SlotMachine` tracks a `centerIdx` per reel in `reelIndices`. The idle visible window is derived from that index. On spin, `SlotMachine` sets a `destinations` array (one per reel, using each reel's own length); each `Reel` picks up its destination via props and runs an animation to it. When the animation finishes, the Reel calls `onStop(finalIdx)` and `SlotMachine` updates the corresponding `centerIdx`.
 
-**Visible symbols**: `SlotMachine` derives `visibleSymbols` via `useMemo` — a `(string | number)[][]` grid where each inner array is one reel's visible column. Recomputed from `reelIndices`, `reels`, and `rowCount`. Available for win checking without needing to reconstruct from indices.
+**Win checking (no `useEffect`)**: The win check runs synchronously inside `handleReelStop` the moment the last reel reports. Two refs make this safe:
+
+- `reelIndicesRef` — mirrors `reelIndices` state. Seeded from the committed state at the top of `spinReels`, then mutated synchronously inside `handleReelStop` (before calling `setReelIndices`). The ref is necessary because `Reel` captures its `onStop` callback once when the animation starts, so every reel's handler closes over the same render's `reelIndices`. Reading from state would cause each handler to overwrite its siblings' updates; reading from the ref gives each handler the freshest post-update array.
+- `completedCountRef` — counts reels stopped in the current spin. A ref (not state) because nothing renders based on it, and it must be read/written synchronously across handlers that may fire before React commits.
+
+When `completedCountRef.current` reaches `reels.length`, the handler derives `finalVisible` directly from the locally computed `nextIndices`, checks the middle-row payline with `checkWin`, and — on a win — calls `setWin` and `setCredits` alongside the spinning/destination/maxxed resets. React batches every setter in the event into one render, so the transition from spinning to "stopped with win displayed" happens atomically. No `useEffect`-driven state updates.
 
 **Spin animation (WAAPI)**: On spin start, the Reel builds a single tall strip of `totalSteps + 1 + rowCount` blocks covering the entire journey and hands two things to the browser:
 1. The strip committed to the DOM (via `useLayoutEffect` + `setState`, so it's in place before paint)
@@ -75,6 +83,8 @@ All reel configuration lives in `ReelContext` as mutable state so future UI can 
 
 - `reelSlice(array, count, topIdx)` — forward slice of `count` items starting from `topIdx`, wrapping circularly. Used to build both the idle `rowCount + 1` window and the full spin strip
 - `randIdx(len)` — random index in `[0, len)`. Used to pick spin destinations
+- `checkWin(payLine, reels)` — checks if all symbols at the given row indices across reels match. `SlotMachine` builds a middle-row payline (`reels.map(() => Math.floor(rowCount / 2))`) so any reel/row count works
+- `payoutMap` — maps symbols to payout values. Win amount = `payoutMap[winSymbol] * bet`
 
 ### Sizing
 
