@@ -1,14 +1,7 @@
-const payOuts = new Map([
-    ["🎰🎰🎰", 1000],
-    ["🍀🍀🍀", 500],
-    ["🔔🔔🔔", 250],
-    ["🍒🍒🍒", 100],
-    ["🍇🍇🍇", 75],
-    ["🍊🍊🍊", 50],
-    ["🍋🍋🍋", 25]
-])
+import { usePayoutContext } from "../PayoutContext";
 
 export const PayTable = () => {
+    const { payOuts } = usePayoutContext();
     return(
         <div className='bg-white text-2xl font-bold p-4 rounded-sm'>
         <table>

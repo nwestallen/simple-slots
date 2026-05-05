@@ -3,10 +3,12 @@ import { SlotScreen } from "./SlotScreen";
 import { Scoreboard } from "./Scoreboard";
 import { SlotButton } from "./SlotButton";
 import { useReelContext } from "../ReelContext";
-import { checkWin, payoutMap, randIdx, reelSlice } from "../utils";
+import { usePayoutContext } from "../PayoutContext";
+import { getPayOut, randIdx, reelSlice } from "../utils";
 
 export const SlotMachine = () => {
     const { reels, rowCount } = useReelContext();
+    const { payOuts } = usePayoutContext();
     const [reelIndices, setReelIndices] = useState(() => reels.map(() => 0));
     const reelIndicesRef = useRef(reelIndices);
     const [prevReelCount, setPrevReelCount] = useState(reels.length);
@@ -54,10 +56,10 @@ export const SlotMachine = () => {
             setSpinning(false);
             setMaxxed(false);
 
-            if (checkWin(payLine, finalVisible)) {
-                const winSymbol = finalVisible[0][midRow] as keyof typeof payoutMap;
-                setWin(payoutMap[winSymbol] * bet);
-                setCredits(c => c + payoutMap[winSymbol] * bet);
+            const payOut = getPayOut(payOuts, payLine, finalVisible);
+            if (payOut > 0) {
+                setWin(payOut);
+                setCredits(c => c + payOut);
             }
         }
     };

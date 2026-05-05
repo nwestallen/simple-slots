@@ -11,17 +11,7 @@ export const reelSlice = (array: (string|number)[], count: number, topIdx: numbe
 
 export const randIdx = (len: number): number => Math.floor(Math.random() * len);
 
-export const payoutMap = {
-    "🍒": 50,
-    "🍇": 50,
-    "🍋": 50,
-    "🍊": 50,
-    "🔔": 50,
-    "🍀": 50,
-    "🎰": 50
-};
-
-export const checkWin = (payLine: number[], reels: (string|number)[][]): boolean => {
-    const line = payLine.map((p, i) => reels[i][p]);
-    return line.every(s => s === line[0])
+export const getPayOut = (payMap: Map<string, number>, payLine: number[], reels: (string|number)[][]): number => {
+    const line = payLine.map((p, i) => reels[i][p]).join("");
+    return  payMap.get(line) ?? 0;
 }
