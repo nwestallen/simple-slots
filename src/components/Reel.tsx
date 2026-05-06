@@ -9,9 +9,10 @@ interface ReelProps {
     currentIdx: number;
     destinationIdx: number | null;
     onStop: (finalIdx: number) => void;
+    highlightIdx?: number;
 }
 
-export const Reel = ({ symbols, reelIndex, currentIdx, destinationIdx, onStop }: ReelProps) => {
+export const Reel = ({ symbols, reelIndex, currentIdx, destinationIdx, onStop, highlightIdx }: ReelProps) => {
     const { rowCount, extraCycles: extraCyclesArr, speed } = useReelContext();
     const extraCycles = extraCyclesArr[reelIndex] ?? extraCyclesArr[extraCyclesArr.length - 1];
     const elRef = useRef<HTMLDivElement>(null);
@@ -82,7 +83,7 @@ export const Reel = ({ symbols, reelIndex, currentIdx, destinationIdx, onStop }:
     return (
         <div ref={elRef} className="flex flex-col w-full" style={{ transform: 'translateY(-10vh)' }}>
             {blocks.map((symbol, i) => (
-                <Block key={i} symbol={symbol} />
+                <Block key={i} symbol={symbol} highlighted={i == highlightIdx}/>
             ))}
         </div>
     )

@@ -20,6 +20,7 @@ export const SlotMachine = () => {
     const [maxBet, setMaxBet] = useState(3);
     const [maxxed, setMaxxed] = useState(false);
     const [win, setWin] = useState<string | number>("")
+    const [highlights, setHighlights] = useState<number[]>([])
 
     if (reels.length !== prevReelCount) {
         setPrevReelCount(reels.length);
@@ -28,6 +29,7 @@ export const SlotMachine = () => {
 
     const spinReels = () => {
         if (spinning) return;
+        setHighlights([])
         setCredits(c => c - bet);
         setWin("");
         reelIndicesRef.current = reelIndices;
@@ -60,6 +62,7 @@ export const SlotMachine = () => {
             if (payOut > 0) {
                 setWin(payOut);
                 setCredits(c => c + payOut);
+                setHighlights(payLine.map(v => v + 1));
             }
         }
     };
@@ -89,6 +92,7 @@ export const SlotMachine = () => {
                     currentIndices={reelIndices}
                     destinations={destinations}
                     onReelStop={handleReelStop}
+                    highlights={highlights}
                 />
             </div>
             <Scoreboard credits={credits} win={win} bet={bet} />
